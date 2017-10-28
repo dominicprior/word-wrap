@@ -35,8 +35,7 @@ setup w = do
     getBody w #++ [sp, svgWrap]
     b <- getBody w
 
-    --on UI.mousemove wrap $ fmouse out
-    on my_keydown b $ fdown r1 r2 out1 out2 elemCircle
+    on UI.keydown b $ fdown r1 r2 out1 out2 elemCircle
     on my_keypress b $ fpress r1 out1 elemCircle
 
 fdown :: IORef [Char] -> IORef [Char] -> Element -> Element -> Element -> Int -> UI Element
@@ -71,19 +70,6 @@ moveBlob circ = do
   (k :: Double) <- callFunction $ ffi "$('.sp').width()"
   element circ # set SVG.cx (show $ k)
 
-
 -- | Key pressed while element has focus.
 my_keypress :: Element -> Event Char
 my_keypress = fmap (toEnum . read . head . unsafeFromJSON) . domEvent "keypress"
-
--- | Key pressed while element has focus.
-my_keydown :: Element -> Event UI.KeyCode
-my_keydown = fmap unsafeFromJSON . domEvent "keydown"
-
-fmouse :: Element -> (Int,Int) -> UI Element
-fmouse el xy = element el # set text ("hello!!! " ++ show xy)
-
-
-
-
-
