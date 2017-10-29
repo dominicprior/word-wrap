@@ -30,8 +30,7 @@ setup :: Window -> UI ()
 setup w = do
     model <- liftIO $ newIORef $ Model [""] [""]
     b <- getBody w
-
-    --on UI.keydown b $ fdown model out1 out2
+    on UI.keydown b  $ fdown  model b
     on my_keypress b $ fpress model b
 
 fpress :: IORef Model -> Element -> Char -> UI Element
@@ -48,8 +47,11 @@ appendChar c   ss = init ss ++ [last ss ++ [c]]
 draw :: Model -> Element -> UI Element
 draw m b = do
   ch <- sequence $
-      (intersperse spacer $ map string $ m ^. front) ++ [bar]
+           (strings $ m ^. front) ++ [bar] ++ (strings $ m ^. back)
   b ## s THREE.children ch
+
+strings :: [String] -> [UI Element]
+strings ss = intersperse spacer $ map string ss
 
 spacer :: UI Element
 spacer = UI.span # s style [("padding-left", "6px")]
@@ -57,23 +59,35 @@ spacer = UI.span # s style [("padding-left", "6px")]
 bar :: UI Element
 bar = string "|" # s style [("color", "red")]
 
-fdown :: IORef Model -> Element -> Element -> Int -> UI Element
-fdown model el1 el2 k = do
+fdown :: IORef Model -> Element -> Int -> UI Element
+fdown model body k = do
   m <- liftIO $ readIORef model
-  let a = "foo"
-  let b = "foo"
+  let a = m ^. front
+  let b = m ^. back
   let (a', b') =
         case k of
-          8 ->  if null a then (a,b) else (init a, b)  -- backspace
-          36 -> ([], a ++ b)  -- home  -- http://keycode.info/
-          35 -> (a ++ b, [])  -- end
+          8 ->  (deleteLast a, b)  -- backspace
+          36 -> ([""], a ++ b)  -- home  -- http://keycode.info/
+          35 -> (a ++ b, [""])  -- end
           37 -> if null a then (a,b) else (init a, last a : b)  -- left arrow
           39 -> if null b then (a,b) else (a ++ [head b], tail b)  -- right arrow
           46 -> if null b then (a,b) else (a, tail b)  -- delete
           _ -> (a, b)
-  liftIO $ writeIORef model m
-  el1 ## s text a'
-  el2 ## s text b'
+  let m' = Model a' b'
+  liftIO $ writeIORef model m'
+  draw m' body
+
+deleteFirst :: [String] -> [String]
+deleteFirst [""] = [""]
+deleteFirst ("":ss) = ss
+deleteFirst ((c:cs):ss) = cs:ss
+
+deleteLast :: [String] -> [String]
+deleteLast = revrev . deleteFirst . revrev
+
+revrev :: [[a]] -> [[a]]
+revrev = reverse . map reverse
+
 
 -- | Key pressed while element has focus.
 my_keypress :: Element -> Event Char
