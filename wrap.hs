@@ -21,7 +21,7 @@ setup :: Window -> UI ()
 setup w = do
     model <- liftIO $ newIORef $ Model "" ""
     b <- getBody w
-    span1 <- UI.span
+    span1 <- UI.span # T.set style [("font-family", "sans-serif")]
     span2 <- UI.span #. "w" # T.set style [("visibility", "hidden")]
 
     elemRect <- SVG.rect
@@ -74,7 +74,10 @@ spacer :: Int -> UI Element
 spacer n = UI.span # T.set style [("padding-left", show n ++ "px")]
 
 bar :: UI Element
-bar = string "|" # T.set style [("color", "red")]
+bar = string "|" # T.set style [("color", "red")
+                                --("font-stretch", "ultra-condensed")
+                                --("font-family", "Helvetica Neue")
+                                ]
 
 fdown :: IORef Model -> Element -> Element -> Int -> UI Element
 fdown model span1 span2 k = do
