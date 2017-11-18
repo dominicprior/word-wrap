@@ -33,14 +33,28 @@ fpress model b c = do
 
 draw :: Model -> Element -> UI Element
 draw m b = do
-  ch <- sequence $ sp (m ^. front) ++ [bar] ++ sp (m ^. back)
-  UI.element b # T.set T.children ch
+  let elems = sp (m ^. front) ++ [bar] ++ sp (m ^. back)
+  ch <- sequence elems
+  widths <- mapM (elWidth b) ch
+  let n = length $ takeWhile (< 100) $ scanl1 (+) widths
+  br <- UI.br
+  let ch' = take n ch ++ [br] ++ drop n ch
+  setCh b ch'
+
+elWidth :: Element -> Element -> UI Double
+elWidth b e = do
+  e' <- return e #. "w"
+  setCh b [e]
+  callFunction $ ffi "$('.w').width()"
+
+setCh :: Element -> [Element] -> UI Element
+setCh e es = UI.element e # T.set T.children es
 
 sp :: String -> [UI Element]
 sp = intersperse spacer . map string . splitOn " "
 
 spacer :: UI Element
-spacer = UI.span # T.set style [("padding-left", "6px")]
+spacer = UI.span # T.set style [("padding-left", "5px")]
 
 bar :: UI Element
 bar = string "|" # T.set style [("color", "red")]
