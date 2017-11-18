@@ -33,7 +33,7 @@ setup w = do
         # T.set SVG.height "100" #+ [UI.element elemRect]
     svgWrap <- UI.div #. "svgwrap"
         # T.set style [("width","300px"),("height","300px"), ("position", "absolute"),
-                        ("top","0px"), ("left","0px"),("color", "red"),
+                        ("top","0px"), ("left","0px"), ("color", "red"),
                         ("opacity","0.2")]
         #+ [UI.element context]
 
@@ -55,7 +55,8 @@ draw m span1 span2 = do
   widths <- mapM (elWidth span2) ch
   let n = length $ takeWhile (< 100) $ scanl1 (+) widths
   br <- UI.br
-  let ch' = take n ch ++ [br] ++ drop n ch
+  sp <- spacer 20
+  let ch' = take n ch ++ [br, sp] ++ drop n ch
   setCh span1 ch'
 
 elWidth :: Element -> Element -> UI Double
@@ -67,10 +68,10 @@ setCh :: Element -> [Element] -> UI Element
 setCh e es = UI.element e # T.set T.children es
 
 sp :: String -> [UI Element]
-sp = intersperse spacer . map string . splitOn " "
+sp = intersperse (spacer 5) . map string . splitOn " "
 
-spacer :: UI Element
-spacer = UI.span # T.set style [("padding-left", "5px")]
+spacer :: Int -> UI Element
+spacer n = UI.span # T.set style [("padding-left", show n ++ "px")]
 
 bar :: UI Element
 bar = string "|" # T.set style [("color", "red")]
