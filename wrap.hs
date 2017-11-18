@@ -23,7 +23,19 @@ setup w = do
     b <- getBody w
     span1 <- UI.span
     span2 <- UI.span #. "w" # T.set style [("visibility", "hidden")]
-    setCh b [span1, span2]
+
+    elemCircle <- SVG.circle
+        # T.set SVG.cx "108" # T.set SVG.cy "2" # T.set SVG.r "2"
+        # T.set SVG.fill "blue"
+    context <- SVG.svg
+        # T.set SVG.width "300"
+        # T.set SVG.height "100" #+ [UI.element elemCircle]
+    svgWrap <- UI.div #. "svgwrap"
+        # T.set style [("width","300px"),("height","300px"), ("position", "absolute"),
+                        ("top","0px"), ("left","0px")]
+        #+ [UI.element context]
+
+    setCh b [span1, span2, svgWrap]
     on UI.keydown b  $ fdown  model span1 span2
     on my_keypress b $ fpress model span1 span2
 
