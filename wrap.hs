@@ -24,15 +24,17 @@ setup w = do
     span1 <- UI.span
     span2 <- UI.span #. "w" # T.set style [("visibility", "hidden")]
 
-    elemCircle <- SVG.circle
-        # T.set SVG.cx "108" # T.set SVG.cy "2" # T.set SVG.r "2"
-        # T.set SVG.fill "blue"
+    elemRect <- SVG.rect
+        # T.set SVG.x "8" # T.set SVG.y "2" # T.set SVG.width "100"
+        # T.set SVG.height "100"
+        # T.set SVG.fill "pink"
     context <- SVG.svg
         # T.set SVG.width "300"
-        # T.set SVG.height "100" #+ [UI.element elemCircle]
+        # T.set SVG.height "100" #+ [UI.element elemRect]
     svgWrap <- UI.div #. "svgwrap"
         # T.set style [("width","300px"),("height","300px"), ("position", "absolute"),
-                        ("top","0px"), ("left","0px")]
+                        ("top","0px"), ("left","0px"),("color", "red"),
+                        ("opacity","0.2")]
         #+ [UI.element context]
 
     setCh b [span1, span2, svgWrap]
