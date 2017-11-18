@@ -21,29 +21,31 @@ setup :: Window -> UI ()
 setup w = do
     model <- liftIO $ newIORef $ Model "" ""
     b <- getBody w
-    on UI.keydown b  $ fdown  model b
-    on my_keypress b $ fpress model b
+    span1 <- UI.span
+    span2 <- UI.span #. "w" # T.set style [("visibility", "hidden")]
+    setCh b [span1, span2]
+    on UI.keydown b  $ fdown  model span1 span2
+    on my_keypress b $ fpress model span1 span2
 
-fpress :: IORef Model -> Element -> Char -> UI Element
-fpress model b c = do
+fpress :: IORef Model -> Element -> Element -> Char -> UI Element
+fpress model span1 span2 c = do
   m <- liftIO $ readIORef model
   let m' = over front (++ [c]) m
   liftIO $ writeIORef model m'
-  draw m' b
+  draw m' span1 span2
 
-draw :: Model -> Element -> UI Element
-draw m b = do
+draw :: Model -> Element -> Element -> UI Element
+draw m span1 span2 = do
   let elems = sp (m ^. front) ++ [bar] ++ sp (m ^. back)
   ch <- sequence elems
-  widths <- mapM (elWidth b) ch
+  widths <- mapM (elWidth span2) ch
   let n = length $ takeWhile (< 100) $ scanl1 (+) widths
   br <- UI.br
   let ch' = take n ch ++ [br] ++ drop n ch
-  setCh b ch'
+  setCh span1 ch'
 
 elWidth :: Element -> Element -> UI Double
 elWidth b e = do
-  e' <- return e #. "w"
   setCh b [e]
   callFunction $ ffi "$('.w').width()"
 
@@ -59,8 +61,8 @@ spacer = UI.span # T.set style [("padding-left", "5px")]
 bar :: UI Element
 bar = string "|" # T.set style [("color", "red")]
 
-fdown :: IORef Model -> Element -> Int -> UI Element
-fdown model body k = do
+fdown :: IORef Model -> Element -> Element -> Int -> UI Element
+fdown model span1 span2 k = do
   m <- liftIO $ readIORef model
   let a = m ^. front
   let b = m ^. back
@@ -75,7 +77,7 @@ fdown model body k = do
           _ -> (a, b)
   let m' = Model a' b'
   liftIO $ writeIORef model m'
-  draw m' body
+  draw m' span1 span2
 
 -- | Key pressed while element has focus.
 my_keypress :: Element -> Event Char
