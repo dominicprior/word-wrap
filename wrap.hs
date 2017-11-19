@@ -50,14 +50,18 @@ fpress model span1 span2 c = do
 
 draw :: Model -> Element -> Element -> UI Element
 draw m span1 span2 = do
-  let elems = sp (m ^. front) ++ [bar] ++ sp (m ^. back)
+  let bck = map (shift (-4)) $ sp (m ^. back)
+  let elems = sp (m ^. front) ++ [bar] ++ bck
   ch <- sequence elems
   widths <- mapM (elWidth span2) ch
   let n = length $ takeWhile (< 100) $ scanl1 (+) widths
   br <- UI.br
-  sp <- spacer 20
-  let ch' = take n ch ++ [br, sp] ++ drop n ch
+  sp20 <- spacer 20
+  let ch' = take n ch ++ [br, sp20] ++ drop n ch
   setCh span1 ch'
+
+shift :: Int -> UI Element -> UI Element
+shift n = T.set style [("position", "relative"), ("left", show n ++ "px")]
 
 elWidth :: Element -> Element -> UI Double
 elWidth b e = do
@@ -74,10 +78,7 @@ spacer :: Int -> UI Element
 spacer n = UI.span # T.set style [("padding-left", show n ++ "px")]
 
 bar :: UI Element
-bar = string "|" # T.set style [("color", "red")
-                                --("font-stretch", "ultra-condensed")
-                                --("font-family", "Helvetica Neue")
-                                ]
+bar = string "|" # T.set style [("color", "red")] # shift (-2)
 
 fdown :: IORef Model -> Element -> Element -> Int -> UI Element
 fdown model span1 span2 k = do
