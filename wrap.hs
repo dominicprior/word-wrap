@@ -51,22 +51,34 @@ fpress model span1 span2 c = do
 draw :: Model -> Element -> Element -> UI Element
 draw m span1 span2 = do
   let bck = map (shift (-4)) $ sp (m ^. back)
-  let elems = sp (m ^. front) ++ [bar] ++ bck
-  ch <- sequence elems
-  widths <- mapM (elWidth span2) ch
-  let n = length $ takeWhile (< 100) $ scanl1 (+) widths
-  br <- UI.br
-  sp20 <- spacer 20
-  let ch' = take n ch ++ [br, sp20] ++ drop n ch
-  setCh span1 ch'
+  elems <- sequence $ sp (m ^. front) ++ [bar] ++ bck
+  elemsAndwidths <- mapM (elWidth span2) elems
+  elems' <- addLineBreaks (return []) 0 elemsAndwidths
+  setCh span1 elems'
+
+instance Show Element where
+  show _ = "e"
+
+addLineBreaks :: UI [Element] -> Double -> [(Element, Double)] -> UI [Element]
+addLineBreaks ans _ [] = ans
+addLineBreaks ans n ((e,w):xs) = do
+  ans' <- ans
+  if n+w > 100
+    then do
+      br <- UI.br
+      sp20 <- spacer 20
+      addLineBreaks (return $ ans' ++ [br, sp20, e]) (20+w) xs
+    else
+      addLineBreaks (return $ ans' ++ [e]) (n+w) xs
 
 shift :: Int -> UI Element -> UI Element
 shift n = T.set style [("position", "relative"), ("left", show n ++ "px")]
 
-elWidth :: Element -> Element -> UI Double
+elWidth :: Element -> Element -> UI (Element, Double)
 elWidth b e = do
   setCh b [e]
-  callFunction $ ffi "$('.w').width()"
+  w <- callFunction $ ffi "$('.w').width()"
+  return (e,w)
 
 setCh :: Element -> [Element] -> UI Element
 setCh e es = UI.element e # T.set T.children es
